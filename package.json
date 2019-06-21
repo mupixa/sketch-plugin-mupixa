@@ -28,7 +28,6 @@
   },
   "author": "www.mupixa.com",
   "dependencies": {
-    "axios": "^0.18.0",
     "sketch-module-web-view": "^3.0.1",
     "sketch-polyfill-fetch": "github:skpm/sketch-polyfill-fetch",
     "skpm": "^1.2.0"

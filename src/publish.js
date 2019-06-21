@@ -2,7 +2,6 @@ import sketch from 'sketch'
 const { fetchToken, purgeToken } = require("./utils/token");
 const mpxUtils = require('./utils/mpx');
 const cocoaApiWrapper = require('./cocoa-api-wrapper');
-const BrowserWindow = require('sketch-module-web-view')
 var layerWidth = null;
 var layerHeight = null;
 var token = null;
