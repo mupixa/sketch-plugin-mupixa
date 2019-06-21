@@ -1,0 +1,36 @@
+{
+  "name": "mupixa",
+  "description": "",
+  "version": "1.0.0",
+  "engines": {
+    "sketch": ">=49.0"
+  },
+  "skpm": {
+    "name": "Mupixa",
+    "manifest": "src/manifest.json",
+    "main": "mupixa.sketchplugin",
+    "assets": [
+      "assets/**/*"
+    ]
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mupixa/sketch-plugin-mupixa.git"
+  },
+  "scripts": {
+    "build": "skpm-build",
+    "watch": "skpm-build --watch",
+    "start": "skpm-build --watch --run",
+    "postinstall": "npm run build && skpm-link"
+  },
+  "devDependencies": {
+    "@skpm/builder": "^0.5.11"
+  },
+  "author": "www.mupixa.com",
+  "dependencies": {
+    "axios": "^0.18.0",
+    "sketch-module-web-view": "^3.0.1",
+    "sketch-polyfill-fetch": "github:skpm/sketch-polyfill-fetch",
+    "skpm": "^1.2.0"
+  }
+}

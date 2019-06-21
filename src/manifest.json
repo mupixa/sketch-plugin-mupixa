@@ -1,0 +1,23 @@
+{
+  "compatibleVersion": 3,
+  "bundleVersion": 1,
+  "icon": "icon.png",
+  "commands": [
+    {
+      "name": "Publish",
+      "identifier": "mupixa.publish-identifier",
+      "script": "./publish.js"
+    },
+    {
+      "name": "About",
+      "identifier": "mupixa.about-identifier",
+      "script": "./about.js"
+    }
+  ],
+  "menu": {
+    "title": "Mupixa",
+    "items": [
+      "mupixa.publish-identifier","mupixa.about-identifier"
+    ]
+  }
+}
