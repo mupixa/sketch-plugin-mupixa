@@ -27,6 +27,7 @@
     "@skpm/builder": "^0.5.11"
   },
   "author": "www.mupixa.com",
+  "description": "Mupixa allows you to leverage the full potential of your prototypes by conducting usability research fast and effortlessly.",
   "dependencies": {
     "sketch-module-web-view": "^3.0.1",
     "sketch-polyfill-fetch": "github:skpm/sketch-polyfill-fetch",
