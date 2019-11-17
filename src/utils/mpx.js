@@ -9,7 +9,6 @@ const disableNetwork = false;
  */
 function storeAsset(token, projectId, imgUrl) {
     let url =  apiEndpoint + 'asset?project=' + projectId;
-    console.log('entered storing assets ' + url)
 	return new Promise((resolve, reject) => {
         var requestConfig = {
             method: 'post',
@@ -21,7 +20,6 @@ function storeAsset(token, projectId, imgUrl) {
                 base64: imgUrl
             }
         };
-        console.log('storeAsset => request');
         fetch(url, requestConfig)
             .then((response) => {
                 return response.text()
@@ -57,7 +55,6 @@ function storePrj(token, prj, config) {
                 config: config
             }
         };
-        console.log('storePrj => request');
         fetch(url, requestConfig)
             .then((response) => {
                 return response.text()
@@ -84,20 +81,29 @@ function getInitialPrj() {
 	};
 }
 
+function createPage(artboardId, name, assetId, flowsMap, isHomepage) {
+    let page = {
+        id: newGuid(),
+        name: name,
+        imgURL: '',
+        assetId: assetId,
+        hotspots: []
+        // isHomepage: isHomepage // TODO
+    };
+    if (flowsMap.hasOwnProperty(artboardId)) {
+        flowsMap[artboardId].forEach(hotspot => {
+            page.hotspots.push(
+                Object.assign({}, hotspot, {id: page.id + '|' + hotspot.id})
+            );
+        });
+    }
+	return page;
+}
+
 function getInitialConfig() {
 	return {
 		quests: [],
 		allowedIPs: []
-	};
-}
-
-function getInitialPage() {
-	return {
-        id: newGuid(),
-        name: '',
-        imgURL: '',
-        assetId: '',
-        hotspots: []
 	};
 }
 
@@ -106,5 +112,5 @@ module.exports = {
     storePrj,
     getInitialPrj,
     getInitialConfig,
-    getInitialPage
+    createPage
 }
