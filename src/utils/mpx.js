@@ -85,7 +85,7 @@ function createPage(artboardId, name, assetId, flowsMap, isHomepage) {
     let page = {
         id: newGuid(),
         name: name,
-        imgURL: '',
+        imgUrl: '',
         assetId: assetId,
         hotspots: []
         // isHomepage: isHomepage // TODO
