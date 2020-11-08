@@ -1,8 +1,7 @@
 import sketch from 'sketch'
-const { fetchToken, purgeToken } = require("./utils/token");
+import { eventTypes, progressStatus } from '../resources/constants';
+const { fetchToken } = require("./utils/token");
 const mpxUtils = require('./utils/mpx');
-const cocoaApiWrapper = require('./cocoa-api-wrapper');
-const BrowserWindow = require('sketch-module-web-view');
 const { newGuid } = require("./utils/general");
 const Artboard = require('sketch/dom').Artboard;
 var layerWidth = null;
@@ -16,34 +15,23 @@ const HOTSPOT_TYPE_BACK = 4;
 var artboardLayers = [];
 var modifiedLayerCoords = {};
 var layerCoordsPromises = [];
+var webContents = null;
 
-export default function() {
-  publish();
-}
-
-function publish() {
-  console.log('-------------- BEGIN -------------')
+export function publish(name, webc) {
+  webContents = webc;
   token = fetchToken();
-  console.log('got token: ' + token);
+  
   selectedPage = getSelectedPage(sketch.getSelectedDocument().pages);
+
+  console.log(name);
 
   if(!selectedPage) {
     // page needs to be selected otherwise we need to export artboards for all pages
-    sketch.UI.message('At least one page must be selected!');
+    setResult('Could not publish project. At least one page must be selected.');
     return null;
   }
-  // The following snippet is an option for creating custom UI
-  // let win = new BrowserWindow({ width: 800, height: 600 })
-  // win.on('closed', () => {
-  //   win = null
-  // })
 
-  // Load a remote URL
-  //win.loadURL('http://localhost')
-  var response = cocoaApiWrapper.popUpModalDialog(sketch);
-  _processDialogResponse(response);
-  
-  console.log('-------------- END -------------')
+  publishArtboards(name);
 }
 
 function exportBoards(page) {
@@ -53,6 +41,7 @@ function exportBoards(page) {
   for (let layer of page.layers) {
     console.log(layer.name +' with ID '+layer.id+'is being exported');
     if(!layer instanceof Artboard) continue;
+    
     artboardLayers.push(layer);
 
     let size = getLayerSize(layer);
@@ -62,7 +51,8 @@ function exportBoards(page) {
                     width: size.width,
                     height: size.height, 
                     content: _arrayBufferToBase64(buffer)};
-
+    
+   
     if(layer.flowStartPoint) {
       flowStartArtboard = layer;
       artboards.unshift(artboard);
@@ -70,16 +60,35 @@ function exportBoards(page) {
       artboards.push(artboard);
     }
 
+    if(!layer.layers) continue;
+
     for( let l of layer.layers) {
       modifiedLayerCoords[l.id] = {x: l.frame.x, y: l.frame.y};
       layerCoordsPromises.push(adjustLayerCoordinates(l));
     }
   }
-  
+
   return artboards;
 }
 
-var _generateFlowMap = (artboards) => {
+const updateProgress = (val) => {
+  const data = {type: eventTypes.SET_PROGRESS, payload: val}
+  
+  webContents
+      .executeJavaScript(`sendData('${JSON.stringify(data)}')`)
+      .catch(console.error)
+  
+}
+
+const setResult = (result, projectId) => {
+  const payload = {result: result, projectId: projectId};
+  const data = {type: eventTypes.SET_RESULT, payload: payload}
+  webContents
+      .executeJavaScript(`sendData('${JSON.stringify(data)}')`)
+      .catch(console.error)
+}
+
+var generateFlowMap = (artboards) => {
   let map = {};
 
   for(let artboard of artboards) {
@@ -141,15 +150,18 @@ const _createHotspot = (artboard, innerLayer) => {
 
 function publishArtboards(projectName) {
 
+  updateProgress(progressStatus.PREPARING_ARTBOARDS);
+
   var artboards = exportBoards(selectedPage);
-  var flowsMap = _generateFlowMap(artboardLayers);
+
+  var flowsMap = generateFlowMap(artboardLayers);
 
   if(artboards.length < 1) {
-    sketch.UI.message('No artboards available for publishing. Please make sure the selected page contains at least one artboard.');
+    setResult('No artboards available for publishing. Please make sure the selected page contains at least one artboard.');
     return null;
   }
   
-  console.log('got artboards');
+  console.log('Got artboards');
 
   var prj = mpxUtils.getInitialPrj();
   prj.name = projectName;
@@ -157,12 +169,13 @@ function publishArtboards(projectName) {
 
   let assetPromises = [];
 
-  sketch.UI.message('Creating project \'' + projectName + '\' ...');
+  updateProgress(progressStatus.CREATING_PROJECT);
 
   mpxUtils.storePrj(token, prj, config).then(prjId => {
     prj.id = prjId;
-    console.log("prj id is " + prjId);
-    sketch.UI.message('Uploading artboards ...');
+    console.log("Project id: " + prjId);
+    
+    updateProgress(progressStatus.UPLOADING_ARTBOARDS);
     artboards.map(artboard => {
       assetPromises.push(
           mpxUtils.storeAsset(token, prj.id, artboard.content)
@@ -200,17 +213,16 @@ function publishArtboards(projectName) {
             return Object.assign({}, page, {hotspots: newHotspots});
         });
 
-          sketch.UI.message('Assigning uploaded artboards to the project');
+          updateProgress(progressStatus.ASSIGNING_ARTBOARDS);
           // save updated project
           mpxUtils.storePrj(token, prj, config)
               .then(prjId => {
-                  console.log('Project published.');
-                  sketch.UI.message('Your project \'' + projectName + '\' has been published to Mupixa!');
+                  setResult(`Project ${projectName} published successfully!`, prjId);
               });
       });
   })
   .catch(err => {
-    return showError("An error occured", "Please make sure you have internet access.\nIf the error persists, 'Reset authorisation' and try again.");
+    return setResult(`Project ${projectName} could not be published. Please make sure you have internet access. If the problem persists, reset token and try again.`);
   })
   
 
@@ -236,39 +248,12 @@ function getSelectedPage(pages) {
   return null;
 }
 
-function _processDialogResponse(response) {
-  let projectName = response.projectName;
-  if(response.code === cocoaApiWrapper.PUBLISH && projectName == '') {
-    return showError('Publish failed!', 'Please specify a project name.');
-  }
-  switch(response.code) {
-      case cocoaApiWrapper.PUBLISH:
-          publishArtboards(projectName)
-          break;
-      case cocoaApiWrapper.RESET_AUTHORIZATION:
-          console.log('reset authorization')
-          purgeToken();
-          publish();
-          break;
-      default:
-          console.log('closing ... no action');
-  }
-}
-
 function _arrayBufferToBase64( buffer ) {
   var bytes = new Uint8Array( buffer );
   var len = bytes.byteLength;
   console.log('ArrayBuffer size: ' + len);
 
   return 'data:image/jpeg;base64,' + encode(bytes);
-}
-
-function showError(title, description) {
-  var response = cocoaApiWrapper.showAlertError(title, description);
-  if(response == cocoaApiWrapper.PUBLISH) {
-    return publish();
-  }
-  return null;
 }
 
 function encode (input) {

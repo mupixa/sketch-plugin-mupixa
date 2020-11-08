@@ -4,20 +4,21 @@
   "icon": "icon.png",
   "commands": [
     {
-      "name": "Publish",
-      "identifier": "mupixa.publish-identifier",
-      "script": "./publish.js"
-    },
-    {
-      "name": "About",
-      "identifier": "mupixa.about-identifier",
-      "script": "./about.js"
+      "name": "Publisher",
+      "identifier": "mupixa.publisher-identifier",
+      "script": "./main.js",
+      "handlers": {
+        "run": "onRun",
+        "actions": {
+          "Shutdown": "onShutdown"
+        }
+      }
     }
   ],
   "menu": {
     "title": "Mupixa",
     "items": [
-      "mupixa.publish-identifier","mupixa.about-identifier"
+      "mupixa.publisher-identifier"
     ]
   }
 }

@@ -24,11 +24,26 @@
     "postinstall": "npm run build && skpm-link"
   },
   "devDependencies": {
-    "@skpm/builder": "^0.7.5"
+    "@skpm/builder": "^0.7.5",
+    "@skpm/extract-loader": "^2.0.2",
+    "css-loader": "^3.6.0",
+    "html-loader": "^0.5.5",
+    "style-loader": "^2.0.0",
+    "url-loader": "^4.1.1"
   },
   "author": "www.mupixa.com",
+  "resources": [
+    "resources/**/*.js"
+  ],
   "dependencies": {
-    "sketch-module-web-view": "^3.0.1",
+    "@material-ui/core": "^4.11.0",
+    "@material-ui/icons": "^4.9.1",
+    "@material-ui/styles": "^4.10.0",
+    "axios": "^0.18.0",
+    "prop-types": "^15.7.2",
+    "react": "^16.13.1",
+    "react-dom": "^16.13.1",
+    "sketch-module-web-view": "^3.4.3",
     "sketch-polyfill-fetch": "github:skpm/sketch-polyfill-fetch",
     "skpm": "^1.2.0"
   }

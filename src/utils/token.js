@@ -21,8 +21,14 @@ function authorizeToken() {
     settings.setSettingForKey('token', token);
     console.log('Token stored: ' + token);
     
-    // Send the user to authorise the token after logging in
+    // Send the user to authorise the token after loging in
     openURL(tokenRegistrationEndpoint + token);
+
+    
+    // const BrowserWindow = require('sketch-module-web-view')
+    // let win = new BrowserWindow({ width: 800, height: 600, frame: false })
+    // win.loadURL(tokenRegistrationEndpoint + token)
+    
     
     return token;
 }
@@ -38,7 +44,7 @@ function fetchToken() {
     }
     
     console.log('Auth token not found.');
-    return authorizeToken()
+    // return authorizeToken()
 }
 
 /**
@@ -56,5 +62,6 @@ function purgeToken() {
 
 module.exports = {
     fetchToken,
-    purgeToken
+    purgeToken,
+    authorizeToken
 }

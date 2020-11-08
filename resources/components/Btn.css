@@ -1,0 +1,11 @@
+.Btn {
+    display: inline-block;
+    margin-right: 15px;
+    color: var(--content-color);
+  }
+  
+  .Btn:hover {
+    color: var(--secondary-color);
+    cursor: pointer;
+  }
+  
